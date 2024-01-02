@@ -19,11 +19,9 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
-import org.springframework.util.ResourceUtils;
 
 import java.io.ByteArrayOutputStream;
-import java.io.File;
-import java.io.FileNotFoundException;
+import java.io.InputStream;
 import java.text.SimpleDateFormat;
 import java.util.*;
 
@@ -44,15 +42,22 @@ public class SimpleService {
         return new ResponseEntity<>(reportBytes, headers, HttpStatus.OK);
     }
 
-    public ResponseEntity<String> saveReport(String reportFormat) throws FileNotFoundException, JRException {
+    public ResponseEntity<String> saveReport(String reportFormat) throws JRException {
         List<Employee> employees = getAllEmployees()
                 .stream().sorted(Comparator.comparing(Employee::getId)).toList();
-        File file = ResourceUtils.getFile("classpath:employees.jrxml");
-        JasperReport jasperReport = JasperCompileManager.compileReport(file.getAbsolutePath());
+        InputStream inputStream = getClass().getResourceAsStream("/employees.jrxml");
+
+        JasperReport jasperReport = JasperCompileManager.compileReport(inputStream);
         JRBeanCollectionDataSource dataSource = new JRBeanCollectionDataSource(employees);
         Map<String, Object> parameters = new HashMap<>();
         parameters.put("createdBy", "arsproger");
-        String reportName = "report_" + new SimpleDateFormat("dd-MM-yyyy_HH-mm").format(new Date());
+
+        Calendar calendar = Calendar.getInstance(TimeZone.getTimeZone("GMT+6"));
+        Date currentDate = calendar.getTime();
+
+        SimpleDateFormat dateFormat = new SimpleDateFormat("dd-MM-yyyy_HH-mm");
+        dateFormat.setTimeZone(calendar.getTimeZone());
+        String reportName = "report_" + dateFormat.format(currentDate);
 
         JasperPrint jasperPrint = JasperFillManager.fillReport(jasperReport, parameters, dataSource);
 

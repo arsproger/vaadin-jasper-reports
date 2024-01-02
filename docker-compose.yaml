@@ -1,0 +1,28 @@
+services:
+
+  app:
+    image: arsproger/vaadin-jasperreport
+    container_name: java-app
+    ports:
+      - '8080:8080'
+    depends_on:
+      - db
+
+  db:
+    image: postgres
+    container_name: java-postgres
+    environment:
+      POSTGRES_DB: postgres
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: hr
+    volumes:
+      - postgres-data:/var/lib/postgresql/data
+
+  adminer:
+    image: adminer
+    container_name: java-adminer
+    ports:
+      - '8888:8080'
+
+volumes:
+  postgres-data:

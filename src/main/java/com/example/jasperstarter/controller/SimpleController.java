@@ -8,15 +8,13 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.io.FileNotFoundException;
-
 @RestController
 @RequiredArgsConstructor
 public class SimpleController {
     private final SimpleService simpleService;
 
     @GetMapping("/report/{format}")
-    public ResponseEntity<String> saveReport(@PathVariable String format) throws JRException, FileNotFoundException {
+    public ResponseEntity<String> saveReport(@PathVariable String format) throws JRException {
         return simpleService.saveReport(format);
     }
 
