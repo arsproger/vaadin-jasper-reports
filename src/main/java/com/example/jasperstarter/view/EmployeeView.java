@@ -15,6 +15,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 @Route(value = "employeeUi", layout = MainView.class)
 public class EmployeeView extends VerticalLayout {
     private final SimpleService simpleService;
+    private final Grid<Employee> grid = new Grid<>(Employee.class);
 
     @Autowired
     public EmployeeView(SimpleService simpleService) {
@@ -27,7 +28,6 @@ public class EmployeeView extends VerticalLayout {
         });
         add(addButton);
 
-        Grid<Employee> grid = new Grid<>(Employee.class);
         grid.setItems(EmployeeView.this.simpleService.getAllEmployees());
         grid.setHeightFull();
         setHeightFull();
@@ -88,7 +88,6 @@ public class EmployeeView extends VerticalLayout {
         return updateDialog;
     }
 
-
     private Dialog createCreateDialog(Employee employee) {
         Dialog createDialog = new Dialog();
         FormLayout formLayout = new FormLayout();
@@ -104,6 +103,8 @@ public class EmployeeView extends VerticalLayout {
             employee.setPosition(positionField.getValue());
             employee.setSalary(Double.parseDouble(salaryField.getValue()));
             simpleService.saveEmployee(employee);
+
+            grid.setItems(simpleService.getAllEmployees());
             createDialog.close();
         });
         createButton.getElement().getStyle().set("background-color", "blue");
