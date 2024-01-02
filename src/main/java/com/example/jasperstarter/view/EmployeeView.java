@@ -8,13 +8,18 @@ import com.vaadin.flow.component.formlayout.FormLayout;
 import com.vaadin.flow.component.grid.Grid;
 import com.vaadin.flow.component.orderedlayout.HorizontalLayout;
 import com.vaadin.flow.component.orderedlayout.VerticalLayout;
+import com.vaadin.flow.component.textfield.NumberField;
 import com.vaadin.flow.component.textfield.TextField;
+import com.vaadin.flow.data.binder.Binder;
 import com.vaadin.flow.router.Route;
 import org.springframework.beans.factory.annotation.Autowired;
+
+import java.util.function.Consumer;
 
 @Route(value = "employeeUi", layout = MainView.class)
 public class EmployeeView extends VerticalLayout {
     private final SimpleService simpleService;
+    private final Grid<Employee> grid = new Grid<>(Employee.class);
 
     @Autowired
     public EmployeeView(SimpleService simpleService) {
@@ -22,18 +27,17 @@ public class EmployeeView extends VerticalLayout {
 
         Button addButton = new Button("Add Employee", event -> {
             Employee newEmployee = new Employee();
-            Dialog createDialog = createCreateDialog(newEmployee);
+            Dialog createDialog = createCreateDialog(newEmployee, grid);
             createDialog.open();
         });
         add(addButton);
 
-        Grid<Employee> grid = new Grid<>(Employee.class);
-        grid.setItems(EmployeeView.this.simpleService.getAllEmployees());
+        grid.setItems(simpleService.getAllEmployees());
         grid.setHeightFull();
         setHeightFull();
 
         TextField searchField = new TextField("Search");
-        searchField.addValueChangeListener(event -> grid.setItems(EmployeeView.this.simpleService.findBySearchTerm(event.getValue())));
+        searchField.addValueChangeListener(event -> grid.setItems(simpleService.findBySearchTerm(event.getValue())));
         add(searchField);
 
         grid.addComponentColumn(employee -> {
@@ -44,8 +48,8 @@ public class EmployeeView extends VerticalLayout {
             updateButton.getElement().getStyle().set("background-color", "blue");
             updateButton.getStyle().set("color", "black");
             Button deleteButton = new Button("Delete", event -> {
-                EmployeeView.this.simpleService.deleteEmployee(employee.getId());
-                grid.setItems(EmployeeView.this.simpleService.getAllEmployees());
+                simpleService.deleteEmployee(employee.getId());
+                grid.setItems(simpleService.getAllEmployees());
             });
             deleteButton.getElement().getStyle().set("background-color", "red");
             deleteButton.getStyle().set("color", "black");
@@ -55,63 +59,56 @@ public class EmployeeView extends VerticalLayout {
         add(grid);
     }
 
-    private Dialog createUpdateDialog(Employee employee, Grid<Employee> grid) {
-        Dialog updateDialog = new Dialog();
-        FormLayout formLayout = new FormLayout();
-
-        TextField firstNameField = new TextField("First Name");
-        firstNameField.setValue(employee.getFirstName());
-
-        TextField lastNameField = new TextField("Last Name");
-        lastNameField.setValue(employee.getLastName());
-
-        TextField positionField = new TextField("Position");
-        positionField.setValue(employee.getPosition());
-
-        TextField salaryField = new TextField("Salary");
-        salaryField.setValue(String.valueOf(employee.getSalary()));
-
-        Button updateButton = new Button("Update", event -> {
-            employee.setFirstName(firstNameField.getValue());
-            employee.setLastName(lastNameField.getValue());
-            employee.setPosition(positionField.getValue());
-            employee.setSalary(Double.parseDouble(salaryField.getValue()));
-            simpleService.updateEmployeeById(employee.getId(), employee);
-            grid.setItems(simpleService.getAllEmployees());
-            updateDialog.close();
-        });
-        updateButton.getElement().getStyle().set("background-color", "blue");
-        updateButton.getStyle().set("color", "black");
-
-        formLayout.add(firstNameField, lastNameField, positionField, salaryField, updateButton);
-        updateDialog.add(formLayout);
-        return updateDialog;
+    private void configureFormFields(Binder<Employee> binder, TextField firstNameField, TextField lastNameField, TextField positionField, NumberField salaryField) {
+        binder.forField(firstNameField)
+                .asRequired("First Name is required")
+                .bind(Employee::getFirstName, Employee::setFirstName);
+        binder.forField(lastNameField)
+                .asRequired("Last Name is required")
+                .bind(Employee::getLastName, Employee::setLastName);
+        binder.forField(positionField)
+                .asRequired("Position is required")
+                .bind(Employee::getPosition, Employee::setPosition);
+        binder.forField(salaryField)
+                .asRequired("Salary is required")
+                .bind(Employee::getSalary, Employee::setSalary);
     }
 
-
-    private Dialog createCreateDialog(Employee employee) {
-        Dialog createDialog = new Dialog();
+    private Dialog createDialog(Employee employee, String buttonCaption, Consumer<Employee> actionOnValid, Grid<Employee> grid) {
+        Dialog dialog = new Dialog();
         FormLayout formLayout = new FormLayout();
 
         TextField firstNameField = new TextField("First Name");
         TextField lastNameField = new TextField("Last Name");
         TextField positionField = new TextField("Position");
-        TextField salaryField = new TextField("Salary");
+        NumberField salaryField = new NumberField("Salary");
 
-        Button createButton = new Button("Create", event -> {
-            employee.setFirstName(firstNameField.getValue());
-            employee.setLastName(lastNameField.getValue());
-            employee.setPosition(positionField.getValue());
-            employee.setSalary(Double.parseDouble(salaryField.getValue()));
-            simpleService.saveEmployee(employee);
-            createDialog.close();
+        Binder<Employee> binder = new Binder<>(Employee.class);
+        binder.setBean(employee);
+
+        configureFormFields(binder, firstNameField, lastNameField, positionField, salaryField);
+
+        Button actionButton = new Button(buttonCaption, event -> {
+            if (binder.validate().isOk()) {
+                binder.writeBeanIfValid(employee);
+                actionOnValid.accept(employee);
+                grid.setItems(simpleService.getAllEmployees());
+                dialog.close();
+            }
         });
-        createButton.getElement().getStyle().set("background-color", "blue");
-        createButton.getStyle().set("color", "black");
 
-        formLayout.add(firstNameField, lastNameField, positionField, salaryField, createButton);
-        createDialog.add(formLayout);
-        return createDialog;
+        formLayout.add(firstNameField, lastNameField, positionField, salaryField, actionButton);
+        dialog.add(formLayout);
+        return dialog;
+    }
+
+    private Dialog createUpdateDialog(Employee employee, Grid<Employee> grid) {
+        return createDialog(employee, "Update", (updatedEmployee)
+                -> simpleService.updateEmployeeById(updatedEmployee.getId(), updatedEmployee), grid);
+    }
+
+    private Dialog createCreateDialog(Employee employee, Grid<Employee> grid) {
+        return createDialog(employee, "Create", simpleService::saveEmployee, grid);
     }
 
 }
