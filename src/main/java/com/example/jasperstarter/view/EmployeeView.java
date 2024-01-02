@@ -59,10 +59,17 @@ public class EmployeeView extends VerticalLayout {
         Dialog updateDialog = new Dialog();
         FormLayout formLayout = new FormLayout();
 
-        TextField firstNameField = new TextField("First Name", employee.getFirstName());
-        TextField lastNameField = new TextField("Last Name", employee.getLastName());
-        TextField positionField = new TextField("Position", employee.getPosition());
-        TextField salaryField = new TextField("Salary", String.valueOf(employee.getSalary()));
+        TextField firstNameField = new TextField("First Name");
+        firstNameField.setValue(employee.getFirstName());
+
+        TextField lastNameField = new TextField("Last Name");
+        lastNameField.setValue(employee.getLastName());
+
+        TextField positionField = new TextField("Position");
+        positionField.setValue(employee.getPosition());
+
+        TextField salaryField = new TextField("Salary");
+        salaryField.setValue(String.valueOf(employee.getSalary()));
 
         Button updateButton = new Button("Update", event -> {
             employee.setFirstName(firstNameField.getValue());
@@ -80,6 +87,7 @@ public class EmployeeView extends VerticalLayout {
         updateDialog.add(formLayout);
         return updateDialog;
     }
+
 
     private Dialog createCreateDialog(Employee employee) {
         Dialog createDialog = new Dialog();
