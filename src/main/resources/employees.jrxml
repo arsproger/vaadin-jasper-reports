@@ -1,5 +1,4 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<!-- Created with Jaspersoft Studio version 8.2.0.final using JasperReports Library version 6.20.3-415f9428cffdb6805c6f85bbb29ebaf18813a2ab  -->
 <jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports"
               xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
               xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd"
@@ -35,7 +34,7 @@
         <band height="102" splitType="Stretch">
             <image>
                 <reportElement x="725" y="0" width="77" height="102" uuid="651ccc4b-e999-40fe-bcbf-1f25bcfc98af"/>
-                <imageExpression><![CDATA["cherry.jpg"]]></imageExpression>
+                <imageExpression><![CDATA["jasper.jpg"]]></imageExpression>
             </image>
             <frame>
                 <reportElement mode="Opaque" x="0" y="0" width="721" height="66" backcolor="#000000"
@@ -47,7 +46,7 @@
                     <textElement verticalAlignment="Bottom">
                         <font isBold="false"/>
                     </textElement>
-                    <text><![CDATA[Cherry Title]]></text>
+                    <text><![CDATA[Jasper report]]></text>
                 </staticText>
                 <staticText>
                     <reportElement style="SubTitle" x="370" y="37" width="316" height="29"
@@ -55,7 +54,7 @@
                     <textElement textAlignment="Right">
                         <font size="22" isBold="false"/>
                     </textElement>
-                    <text><![CDATA[Cherry SubTitle]]></text>
+                    <text><![CDATA[Jasper SubTitle]]></text>
                 </staticText>
             </frame>
             <frame>
