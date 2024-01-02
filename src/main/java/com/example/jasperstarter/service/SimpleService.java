@@ -25,10 +25,7 @@ import java.io.ByteArrayOutputStream;
 import java.io.File;
 import java.io.FileNotFoundException;
 import java.text.SimpleDateFormat;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
+import java.util.*;
 
 @Service
 @RequiredArgsConstructor
@@ -48,7 +45,8 @@ public class SimpleService {
     }
 
     public ResponseEntity<String> saveReport(String reportFormat) throws FileNotFoundException, JRException {
-        List<Employee> employees = getAllEmployees();
+        List<Employee> employees = getAllEmployees()
+                .stream().sorted(Comparator.comparing(Employee::getId)).toList();
         File file = ResourceUtils.getFile("classpath:employees.jrxml");
         JasperReport jasperReport = JasperCompileManager.compileReport(file.getAbsolutePath());
         JRBeanCollectionDataSource dataSource = new JRBeanCollectionDataSource(employees);
