@@ -25,7 +25,7 @@ public class ReportView extends VerticalLayout {
     public ReportView(SimpleService simpleService) {
         this.simpleService = simpleService;
 
-        formatComboBox.setItems("HTML", "PDF", "XLSX");
+        formatComboBox.setItems("HTML", "PDF", "XLSX", "TXT", "JSON");
 
         Button generateButton = new Button("Generate Report");
         generateButton.addClickListener(e -> generateReport());

@@ -4,6 +4,8 @@ import com.example.jasperstarter.entity.Employee;
 import com.example.jasperstarter.entity.Report;
 import com.example.jasperstarter.repository.EmployeeRepository;
 import com.example.jasperstarter.repository.ReportRepository;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import net.sf.jasperreports.engine.*;
@@ -21,6 +23,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
 import java.io.ByteArrayOutputStream;
+import java.io.IOException;
 import java.io.InputStream;
 import java.text.SimpleDateFormat;
 import java.util.*;
@@ -42,7 +45,7 @@ public class SimpleService {
         return new ResponseEntity<>(reportBytes, headers, HttpStatus.OK);
     }
 
-    public ResponseEntity<String> saveReport(String reportFormat) throws JRException {
+    public ResponseEntity<String> saveReport(String reportFormat) throws JRException, IOException {
         List<Employee> employees = getAllEmployees()
                 .stream().sorted(Comparator.comparing(Employee::getId)).toList();
         InputStream inputStream = getClass().getResourceAsStream("/employees.jrxml");
@@ -81,6 +84,26 @@ public class SimpleService {
                 htmlExporter.setExporterInput(new SimpleExporterInput(jasperPrint));
                 htmlExporter.setExporterOutput(new SimpleHtmlExporterOutput(byteArrayOutputStream));
                 htmlExporter.exportReport();
+                break;
+            case "txt":
+                StringBuilder stringBuilder = new StringBuilder();
+                stringBuilder.append("Employee Report\n\n");
+                String format = "%-5s | %-15s | %-15s | %-10s | %-15s%n";
+                stringBuilder.append(String.format(format, "ID", "First name", "Last name", "Salary", "Position"));
+                stringBuilder.append("-".repeat(70)).append("\n");
+                for (Employee employee : employees) {
+                    stringBuilder.append(String.format(format,
+                            employee.getId(), employee.getFirstName(), employee.getLastName(),
+                            employee.getSalary(), employee.getPosition()));
+                }
+                String textReport = stringBuilder.toString();
+                byteArrayOutputStream.write(textReport.getBytes());
+                break;
+            case "json":
+                ObjectMapper jsonObjectMapper = new ObjectMapper();
+                jsonObjectMapper.enable(SerializationFeature.INDENT_OUTPUT);
+                String jsonReport = jsonObjectMapper.writeValueAsString(employees);
+                byteArrayOutputStream.write(jsonReport.getBytes());
                 break;
             default:
                 String message = "this format " + reportFormat + " is not supported!";
