@@ -12,10 +12,9 @@ import net.sf.jasperreports.engine.*;
 import net.sf.jasperreports.engine.data.JRBeanCollectionDataSource;
 import net.sf.jasperreports.engine.export.HtmlExporter;
 import net.sf.jasperreports.engine.export.JRPdfExporter;
+import net.sf.jasperreports.engine.export.JRTextExporter;
 import net.sf.jasperreports.engine.export.ooxml.JRXlsxExporter;
-import net.sf.jasperreports.export.SimpleExporterInput;
-import net.sf.jasperreports.export.SimpleHtmlExporterOutput;
-import net.sf.jasperreports.export.SimpleOutputStreamExporterOutput;
+import net.sf.jasperreports.export.*;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
@@ -86,18 +85,14 @@ public class SimpleService {
                 htmlExporter.exportReport();
                 break;
             case "txt":
-                StringBuilder stringBuilder = new StringBuilder();
-                stringBuilder.append("Employee Report\n\n");
-                String format = "%-5s | %-15s | %-15s | %-10s | %-15s%n";
-                stringBuilder.append(String.format(format, "ID", "First name", "Last name", "Salary", "Position"));
-                stringBuilder.append("-".repeat(70)).append("\n");
-                for (Employee employee : employees) {
-                    stringBuilder.append(String.format(format,
-                            employee.getId(), employee.getFirstName(), employee.getLastName(),
-                            employee.getSalary(), employee.getPosition()));
-                }
-                String textReport = stringBuilder.toString();
-                byteArrayOutputStream.write(textReport.getBytes());
+                JRTextExporter exporter = new JRTextExporter();
+                exporter.setExporterInput(new SimpleExporterInput(jasperPrint));
+                exporter.setExporterOutput(new SimpleWriterExporterOutput(byteArrayOutputStream));
+                SimpleTextReportConfiguration configuration = new SimpleTextReportConfiguration();
+                configuration.setCharWidth((float) 10);
+                configuration.setCharHeight((float) 12);
+                exporter.setConfiguration(configuration);
+                exporter.exportReport();
                 break;
             case "json":
                 ObjectMapper jsonObjectMapper = new ObjectMapper();
